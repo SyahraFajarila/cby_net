@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetForesee</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+    <!-- Header -->
+    <div class="bg-primary text-white text-center py-3 position-fixed w-100 top-0 d-flex align-items-center">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="ms-3" style="height: 50px;">
+        <h2 class="flex-grow-1 m-0"></h2>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container d-flex justify-content-center align-items-center flex-grow-1" style="margin-top: 80px;">
+        <div class="col-md-8 col-lg-6">
+            <div class="card p-4 shadow">
+                <div class="card-header text-white text-center" style="background-color: #02084b;">
+                    <h3>Form Input Komentar</h3>
+                </div>
+                <div class="card-body">
+                    <div id="hasilContainer" class="alert text-center d-none">
+                        <strong>Hasil Klasifikasi:</strong> 
+                        <span id="hasilText" class="fw-bold"></span>
+                    </div>
+                    <form id="sentiment-form">
+                        <div class="mb-3">
+                            <label for="text" class="form-label">Masukkan Teks:</label>
+                            <input type="text" class="form-control" id="text" name="text" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">Cek</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-white text-center py-3 position-fixed w-100 bottom-0" style="background-color: #02084b;">
+        <p class="m-0">&copy; 2025 NetForesee. All rights reserved.</p>
+    </div>
+
+    <script>
+        document.getElementById("sentiment-form").onsubmit = async function (e) {
+            e.preventDefault();
+            let text = document.getElementById("text").value;
+
+            let response = await fetch("/predict", {
+                method: "POST",
+                body: new URLSearchParams({ text }),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            });
+
+            let result = await response.json();
+            let hasilContainer = document.getElementById("hasilContainer");
+            let hasilText = document.getElementById("hasilText");
+
+            if (result.status === "success") {
+                hasilContainer.classList.remove("d-none");
+                hasilContainer.classList.remove("alert-danger", "alert-success", "alert-warning");
+
+                if (result.prediction === "POSITIVE") {
+                    hasilContainer.classList.add("alert-success");
+                    hasilText.innerHTML = '<span class="text-success">Positif</span>';
+                } else if (result.prediction === "NEGATIVE") {
+                    hasilContainer.classList.add("alert-danger");
+                    hasilText.innerHTML = '<span class="text-danger">Negatif</span>';
+                } else {
+                    hasilContainer.classList.add("alert-warning");
+                    hasilText.innerText = result.prediction;
+                }
+            }
+        };
+    </script>
+
+</body>
+</html>
